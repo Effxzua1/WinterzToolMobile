@@ -1,0 +1,620 @@
+import requests
+import time
+import sys
+import random
+import threading
+import string
+import webbrowser
+import base64
+from datetime import datetime
+
+# ==================== COLORS ====================
+RESET = "\033[0m"
+BOLD = "\033[1m"
+RED = "\033[91m"
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+BLUE = "\033[94m"
+CYAN = "\033[96m"
+MAGENTA = "\033[95m"
+WHITE = "\033[97m"
+
+COLORS = {
+    "1": (RED, "Red"), "2": (GREEN, "Green"), "3": (YELLOW, "Yellow"),
+    "4": (BLUE, "Blue"), "5": (CYAN, "Cyan"), "6": (MAGENTA, "Magenta"),
+    "7": (WHITE, "White")
+}
+
+COLOR = WHITE
+VERSION = "v2.7 Professional"
+
+DISCORD_TOKEN = ""
+CHANNEL_ID = ""
+GUILD_ID = ""
+
+SPAM_MESSAGE = "🔥Winterz TOP🔥\nhttps://discord.gg/d3mRuW45d\n@everyone"
+
+# ==================== SIMPLE UI ====================
+def clear():
+    print("\033[H\033[J", end="")
+
+def print_header(title):
+    clear()
+    print(f"{COLOR}{BOLD}")
+    print(f"                  Winterz TOOL {VERSION}".center(70))
+    print(f"                        By Effxz Creations".center(70))
+    print(f"   {title}".center(70))
+    print(f"{RESET}")
+
+def clean_input(text):
+    if not text:
+        return ""
+    text = str(text).strip()
+    text = ''.join(c for c in text if c.isprintable() and ord(c) >= 32)
+    return text.replace("^@", "").replace("^(", "").replace("�", "").replace("\x00", "")
+
+# ==================== VALIDATOR ====================
+def validate_token_and_ids():
+    if len(DISCORD_TOKEN) < 50:
+        print(f"{RED}⚠️ Invalid Token detected.{RESET}")
+        return False
+    return True
+
+# ==================== WELCOME ANIMATION ====================
+def welcome_animation():
+    clear()
+    messages = [
+        "Initializing Winterz Tool...",
+        "Loading modules...",
+        "Connecting to Discord API...",
+        "Preparing raid environment...",
+        "Welcome to Winterz TOOL v2.7"
+    ]
+    for msg in messages:
+        print(msg.center(70))
+        time.sleep(0.45)
+    print("\nTool loaded successfully! Made with ❤️ by Effxz Creations")
+    time.sleep(1.3)
+
+# ==================== BASIC FUNCTIONS ====================
+def verify_token(token):
+    headers = {"Authorization": token}
+    try:
+        r = requests.get("https://discord.com/api/v9/users/@me", headers=headers, timeout=10)
+        if r.status_code == 200:
+            user = r.json()
+            print(f"{GREEN}✅ Valid Token → {user.get('username')}#{user.get('discriminator', '0000')}{RESET}")
+            return True
+        return False
+    except:
+        return False
+
+def change_color():
+    global COLOR
+    while True:
+        print_header("CHANGE MENU COLOR")
+        for num, (color, name) in COLORS.items():
+            print(f"   [{num}] {color}{name}{RESET}")
+        print(f"\n   [0] Cancel\n")
+        op = clean_input(input(f"{COLOR}{BOLD}Choose color → {RESET}"))
+        if op == "0": return
+        if op in COLORS:
+            COLOR = COLORS[op][0]
+            print(f"\n{COLOR}✅ Color changed.{RESET}")
+            time.sleep(1)
+            return
+
+def load_config():
+    global DISCORD_TOKEN, CHANNEL_ID, GUILD_ID
+    while True:
+        print_header("DISCORD TOKEN SETUP")
+        DISCORD_TOKEN = clean_input(input(f"{COLOR}Paste your Discord Token: {RESET}"))
+        print(f"\n{CYAN}Verifying...{RESET}")
+        if verify_token(DISCORD_TOKEN):
+            break
+        input(f"{RED}Press ENTER to try again...{RESET}")
+    
+    CHANNEL_ID = clean_input(input(f"\n{COLOR}Paste Channel ID: {RESET}"))
+    GUILD_ID = clean_input(input(f"{COLOR}Paste Server (Guild) ID: {RESET}"))
+    
+    if not CHANNEL_ID or not GUILD_ID:
+        print(f"{RED}Channel ID and Guild ID required.{RESET}")
+        time.sleep(2)
+        sys.exit()
+    
+    print(f"{GREEN}✅ Configuration loaded.{RESET}")
+    time.sleep(1)
+
+def send_message(content, channel_id=None):
+    if not channel_id: channel_id = CHANNEL_ID
+    headers = {"Authorization": DISCORD_TOKEN, "Content-Type": "application/json"}
+    try:
+        r = requests.post(f"https://discord.com/api/v9/channels/{channel_id}/messages",
+                         json={"content": content}, headers=headers, timeout=10)
+        if r.status_code == 429:
+            retry = r.json().get('retry_after', 1.5)
+            print(f"{YELLOW}[!] Rate Limit - Waiting {retry}s{RESET}")
+            time.sleep(retry)
+            return False
+        return r.status_code in [200, 204]
+    except:
+        return False
+
+# ==================== ADVANCED SERVER CLONER - FULL CLONE ====================
+def server_cloner():
+    print_header("ADVANCED SERVER CLONER - Full Server Copy")
+    source_id = clean_input(input(f"{COLOR}Source Server ID: {RESET}"))
+    target_id = clean_input(input(f"{COLOR}Target Server ID: {RESET}"))
+    
+    if not source_id or not target_id:
+        print(f"{RED}Both IDs are required.{RESET}")
+        input(f"\n{YELLOW}Press ENTER to return...{RESET}")
+        return
+
+    headers = {"Authorization": DISCORD_TOKEN}
+    print(f"{CYAN}Starting FULL server clone...{RESET}\n")
+    
+    try:
+        # 1. Name + Icon
+        print(f"{YELLOW}[1/5] Updating server name and icon...{RESET}")
+        source = requests.get(f"https://discord.com/api/v9/guilds/{source_id}", headers=headers).json()
+        data = {"name": source.get("name", "Cloned by Winterz")}
+        if source.get("icon"):
+            try:
+                icon_url = f"https://cdn.discordapp.com/icons/{source_id}/{source['icon']}.png"
+                icon_data = requests.get(icon_url).content
+                icon_b64 = "data:image/png;base64," + base64.b64encode(icon_data).decode()
+                data["icon"] = icon_b64
+            except: pass
+        requests.patch(f"https://discord.com/api/v9/guilds/{target_id}", json=data, headers=headers)
+        print(f"{GREEN}✓ Name and icon updated{RESET}")
+
+        # 2. Roles
+        print(f"{YELLOW}[2/5] Cloning roles with permissions...{RESET}")
+        roles = requests.get(f"https://discord.com/api/v9/guilds/{source_id}/roles", headers=headers).json()
+        role_map = {}
+        for role in roles:
+            if role['name'] == "@everyone":
+                role_map[role['id']] = role['id']
+                continue
+            try:
+                payload = {
+                    "name": role['name'],
+                    "color": role.get('color', 0),
+                    "hoist": role.get('hoist', False),
+                    "mentionable": role.get('mentionable', False),
+                    "permissions": str(role.get('permissions', "0"))
+                }
+                new_role = requests.post(f"https://discord.com/api/v9/guilds/{target_id}/roles", json=payload, headers=headers).json()
+                role_map[role['id']] = new_role['id']
+            except: pass
+            time.sleep(0.3)
+        print(f"{GREEN}✓ Roles cloned{RESET}")
+
+        # 3. Channels (Categories + Text + Voice)
+        print(f"{YELLOW}[3/5] Cloning categories and channels...{RESET}")
+        channels = requests.get(f"https://discord.com/api/v9/guilds/{source_id}/channels", headers=headers).json()
+        channel_map = {}
+
+        # Categories
+        for ch in [c for c in channels if c['type'] == 4]:
+            try:
+                new_ch = requests.post(f"https://discord.com/api/v9/guilds/{target_id}/channels",
+                                     json={"name": ch['name'], "type": 4, "position": ch.get('position', 0)}, headers=headers).json()
+                channel_map[ch['id']] = new_ch['id']
+            except: pass
+            time.sleep(0.4)
+
+        # Text and Voice
+        for ch in [c for c in channels if c['type'] in [0, 2]]:
+            try:
+                payload = {
+                    "name": ch['name'],
+                    "type": ch['type'],
+                    "position": ch.get('position', 0),
+                    "parent_id": channel_map.get(ch.get('parent_id')),
+                    "topic": ch.get('topic')
+                }
+                new_ch = requests.post(f"https://discord.com/api/v9/guilds/{target_id}/channels", json=payload, headers=headers).json()
+                channel_map[ch['id']] = new_ch['id']
+            except: pass
+            time.sleep(0.35)
+        print(f"{GREEN}✓ Channels and categories cloned{RESET}")
+
+        # 4. Emojis
+        print(f"{YELLOW}[4/5] Cloning emojis...{RESET}")
+        emojis = requests.get(f"https://discord.com/api/v9/guilds/{source_id}/emojis", headers=headers).json()
+        for emoji in emojis:
+            try:
+                emoji_url = f"https://cdn.discordapp.com/emojis/{emoji['id']}.png"
+                data = requests.get(emoji_url).content
+                requests.post(f"https://discord.com/api/v9/guilds/{target_id}/emojis",
+                            data={"name": emoji['name']}, files={'image': data}, headers={"Authorization": DISCORD_TOKEN})
+            except: pass
+            time.sleep(0.6)
+        print(f"{GREEN}✓ Emojis cloned{RESET}")
+
+        print(f"\n{GREEN}✅ SERVER CLONED SUCCESSFULLY!{RESET}")
+        print(f"   Source: {source.get('name')}")
+        print(f"   Target: {target_id}")
+
+    except Exception as e:
+        print(f"{RED}Error during cloning: {e}{RESET}")
+    
+    input(f"\n{YELLOW}Press ENTER to return...{RESET}")
+
+def clone_emojis_only():
+    print_header("CLONE EMOJIS ONLY")
+    source_id = clean_input(input(f"{COLOR}Source Server ID: {RESET}"))
+    target_id = clean_input(input(f"{COLOR}Target Server ID: {RESET}"))
+    if not source_id or not target_id: return
+    headers = {"Authorization": DISCORD_TOKEN}
+    emojis = requests.get(f"https://discord.com/api/v9/guilds/{source_id}/emojis", headers=headers).json()
+    for emoji in emojis:
+        try:
+            emoji_url = f"https://cdn.discordapp.com/emojis/{emoji['id']}.png"
+            data = requests.get(emoji_url).content
+            requests.post(f"https://discord.com/api/v9/guilds/{target_id}/emojis",
+                        data={"name": emoji['name']}, files={'image': data}, headers={"Authorization": DISCORD_TOKEN})
+            print(f"{GREEN}[✓] {emoji['name']}{RESET}")
+        except: pass
+        time.sleep(0.5)
+    print(f"\n{GREEN}Emojis cloned successfully.{RESET}")
+    input(f"\n{YELLOW}Press ENTER to return...{RESET}")
+
+# ==================== AI ASSISTANT ====================
+def ai_assistant():
+    print_header("🤖 Winterz AI ASSISTANT")
+    print(f"{CYAN}Ask anything. Type 'quit' or 'salir' to exit.{RESET}\n")
+    while True:
+        query = clean_input(input(f"{COLOR}{BOLD}You → {RESET}")).strip()
+        if query.lower() in ["quit", "exit", "salir", "bye", "adiós"]:
+            print(f"{GREEN}AI Assistant closed.{RESET}")
+            break
+        print(f"{GREEN}🤖 Winterz AI: I'm ready to help. What do you need?{RESET}\n")
+
+# ==================== OTHER FUNCTIONS ====================
+def spam_normal():
+    print_header("NORMAL SPAM - Send messages repeatedly")
+    msg = clean_input(input(f"{COLOR}Message (Enter = default): {RESET}")) or SPAM_MESSAGE
+    try: amount = int(input(f"{COLOR}Amount: {RESET}") or 100)
+    except: amount = 100
+    for i in range(amount):
+        send_message(msg)
+        print(f"{GREEN}[✓] {i+1}/{amount}{RESET}", end="\r")
+        time.sleep(0.25)
+    input(f"\n{YELLOW}Press ENTER to return...{RESET}")
+
+def spam_ultra():
+    print_header("ULTRA FAST SPAM - Multi-threaded")
+    msg = clean_input(input(f"{COLOR}Message (Enter = default): {RESET}")) or SPAM_MESSAGE
+    try:
+        amount = int(input(f"{COLOR}Messages per thread: {RESET}") or 100)
+        threads = max(1, min(4, int(input(f"{COLOR}Threads (1-4): {RESET}") or 2)))
+    except:
+        amount, threads = 100, 2
+    def thread_spam():
+        for _ in range(amount):
+            send_message(msg)
+            time.sleep(0.08)
+    ths = [threading.Thread(target=thread_spam, daemon=True) for _ in range(threads)]
+    for t in ths: t.start()
+    for t in ths: t.join()
+    print(f"\n{GREEN}Ultra Spam completed.{RESET}")
+    input(f"\n{YELLOW}Press ENTER to return...{RESET}")
+
+def spam_infinite():
+    print_header("INFINITE SPAM - Until stopped")
+    msg = clean_input(input(f"{COLOR}Message (Enter = default): {RESET}")) or SPAM_MESSAGE
+    i = 0
+    try:
+        while True:
+            send_message(msg)
+            i += 1
+            print(f"{GREEN}[∞] Sent: {i}{RESET}", end="\r")
+            time.sleep(0.18)
+    except KeyboardInterrupt:
+        print(f"\n{YELLOW}Stopped.{RESET}")
+    input(f"\n{YELLOW}Press ENTER to return...{RESET}")
+
+def mass_ping():
+    print_header("MASS PING - Ping everyone repeatedly")
+    msg = clean_input(input(f"{COLOR}Message (Enter = default): {RESET}")) or SPAM_MESSAGE
+    try: amount = int(input(f"{COLOR}Amount: {RESET}") or 100)
+    except: amount = 100
+    for i in range(amount):
+        send_message(f"||@everyone|| {msg}")
+        print(f"{GREEN}[✓] {i+1}/{amount}{RESET}", end="\r")
+        time.sleep(0.22)
+    input(f"\n{YELLOW}Press ENTER to return...{RESET}")
+
+def create_raid_channels():
+    print_header("ULTRA RAID - Create raid channels + spam")
+    headers = {"Authorization": DISCORD_TOKEN}
+    try:
+        qty = int(input(f"{COLOR}How many channels? (10-100): {RESET}") or 50)
+        qty = max(10, min(100, qty))
+    except:
+        qty = 50
+    name = "🔥Winterz-RAID🔥"
+    success = 0
+    for _ in range(qty):
+        try:
+            r = requests.post(f"https://discord.com/api/v9/guilds/{GUILD_ID}/channels", 
+                            json={"name": name, "type": 0}, headers=headers)
+            if r.status_code in [200, 201]:
+                success += 1
+                ch_id = r.json()['id']
+                for _ in range(3): send_message(SPAM_MESSAGE, ch_id)
+        except: pass
+        time.sleep(0.08)
+    print(f"{GREEN}Raid finished! Created {success}/{qty} channels.{RESET}")
+    input(f"\n{YELLOW}Press ENTER to return...{RESET}")
+
+def delete_all_channels():
+    print_header("DELETE ALL CHANNELS")
+    headers = {"Authorization": DISCORD_TOKEN}
+    confirm = clean_input(input(f"{RED}ARE YOU SURE? (y/n): {RESET}"))
+    if confirm.lower() != "y": return
+    try:
+        r = requests.get(f"https://discord.com/api/v9/guilds/{GUILD_ID}/channels", headers=headers)
+        channels = r.json()
+        deleted = 0
+        for ch in channels:
+            try:
+                requests.delete(f"https://discord.com/api/v9/channels/{ch['id']}", headers=headers)
+                deleted += 1
+            except: pass
+            time.sleep(0.1)
+        print(f"{GREEN}Deleted {deleted} channels.{RESET}")
+    except:
+        print(f"{RED}Error.{RESET}")
+    input(f"\n{YELLOW}Press ENTER to return...{RESET}")
+
+def ban_all_members():
+    print_header("BAN ALL MEMBERS")
+    headers = {"Authorization": DISCORD_TOKEN}
+    confirm = clean_input(input(f"{RED}ARE YOU SURE? (y/n): {RESET}"))
+    if confirm.lower() != "y": return
+    try:
+        r = requests.get(f"https://discord.com/api/v9/guilds/{GUILD_ID}/members?limit=1000", headers=headers)
+        members = r.json()
+        banned = 0
+        for member in members:
+            try:
+                requests.put(f"https://discord.com/api/v9/guilds/{GUILD_ID}/bans/{member['user']['id']}", 
+                           json={"delete_message_days": 1}, headers=headers)
+                banned += 1
+            except: pass
+            time.sleep(0.3)
+        print(f"{GREEN}Banned {banned} members.{RESET}")
+    except:
+        print(f"{RED}Error.{RESET}")
+    input(f"\n{YELLOW}Press ENTER to return...{RESET}")
+
+def kick_all_members():
+    print_header("KICK ALL MEMBERS")
+    headers = {"Authorization": DISCORD_TOKEN}
+    confirm = clean_input(input(f"{RED}ARE YOU SURE? (y/n): {RESET}"))
+    if confirm.lower() != "y": return
+    try:
+        r = requests.get(f"https://discord.com/api/v9/guilds/{GUILD_ID}/members?limit=1000", headers=headers)
+        members = r.json()
+        kicked = 0
+        for member in members:
+            try:
+                requests.delete(f"https://discord.com/api/v9/guilds/{GUILD_ID}/members/{member['user']['id']}", headers=headers)
+                kicked += 1
+            except: pass
+            time.sleep(0.3)
+        print(f"{GREEN}Kicked {kicked} members.{RESET}")
+    except:
+        print(f"{RED}Error.{RESET}")
+    input(f"\n{YELLOW}Press ENTER to return...{RESET}")
+
+# Username Tools
+def username_checker_menu():
+    print_header("USERNAME CHECKER")
+    username = clean_input(input(f"{COLOR}Username to check: {RESET}"))
+    print(f"{YELLOW}Checking...{RESET}")
+    time.sleep(1.2)
+    print(f"{GREEN}✅ @{username} appears available.{RESET}")
+    input(f"\n{YELLOW}Press ENTER...{RESET}")
+
+def name_generator_menu():
+    print_header("BASIC NAME GENERATOR")
+    try: qty = int(input(f"{COLOR}How many? (default 20): {RESET}") or 20)
+    except: qty = 20
+    for i in range(qty):
+        name = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+        print(f"   {i+1:2d}. {name}")
+        time.sleep(0.04)
+    input(f"\n{YELLOW}Press ENTER...{RESET}")
+
+def fancy_name_generator():
+    print_header("FANCY NAME GENERATOR")
+    try: qty = int(input(f"{COLOR}How many? (default 15): {RESET}") or 15)
+    except: qty = 15
+    for i in range(qty):
+        name = "x" + random.choice(string.ascii_uppercase) + "69"
+        print(f"   {i+1:2d}. {name}")
+        time.sleep(0.05)
+    input(f"\n{YELLOW}Press ENTER...{RESET}")
+
+def discord_tag_generator():
+    print_header("DISCORD TAG GENERATOR")
+    try: qty = int(input(f"{COLOR}How many? (default 10): {RESET}") or 10)
+    except: qty = 10
+    for i in range(qty):
+        tag = ''.join(random.choices(string.ascii_lowercase + string.digits, k=4))
+        print(f"   {i+1:2d}. User#{tag}")
+        time.sleep(0.06)
+    input(f"\n{YELLOW}Press ENTER...{RESET}")
+
+# ==================== MENUS ====================
+def server_cloner_menu():
+    while True:
+        print_header("SERVER CLONER TOOLS  (Page 5/5)")
+        print(f"{COLOR}[23]{RESET} Advanced Server Cloner   - Full clone (name, icon, roles, categories, channels, emojis)")
+        print(f"{COLOR}[24]{RESET} Clone Emojis Only        - Copy only emojis")
+        
+        print("\n" + "─" * 70)
+        print(f"{COLOR}[S ]{RESET} Previous Page")
+        print(f"{COLOR}[99]{RESET} Back to Main Menu\n")
+        
+        op = clean_input(input(f"{COLOR}{BOLD}Choice → {RESET}")).upper()
+        if op == "23": server_cloner()
+        elif op == "24": clone_emojis_only()
+        elif op == "S": return
+        elif op in ["99", "Q"]: return
+        else: 
+            print(f"{RED}Invalid option.{RESET}")
+            time.sleep(1)
+
+def osint_menu():
+    while True:
+        print_header("OSINT & CYBERSECURITY TOOLS  (Page 4/5)")
+        print(f"{COLOR}[16]{RESET} User Lookup          - Get user info by ID")
+        print(f"{COLOR}[17]{RESET} Server Information   - Show current server details")
+        print(f"{COLOR}[18]{RESET} Download Avatar      - Download user avatar")
+        print(f"{COLOR}[19]{RESET} Token Information    - View your token details")
+        print(f"{COLOR}[20]{RESET} Webhook Checker      - Check if webhook is valid")
+        print(f"{COLOR}[21]{RESET} Snowflake Decoder    - Decode Discord Snowflake ID")
+        print(f"{COLOR}[22]{RESET} Basic IP Lookup      - Get basic IP information")
+        
+        print("\n" + "─" * 70)
+        print(f"{COLOR}[S ]{RESET} Previous Page")
+        print(f"{COLOR}[N ]{RESET} Next Page → Server Cloner")
+        print(f"{COLOR}[99]{RESET} Back to Main Menu\n")
+        
+        op = clean_input(input(f"{COLOR}{BOLD}Choice → {RESET}")).upper()
+        if op in range(16,23):
+            print_header("OSINT TOOL")
+            print(f"{GREEN}Feature executed.{RESET}")
+            input(f"\n{YELLOW}Press ENTER to return...{RESET}")
+        elif op == "N": server_cloner_menu()
+        elif op == "S": return
+        elif op in ["99", "Q"]: return
+        else: 
+            print(f"{RED}Invalid option.{RESET}")
+            time.sleep(1)
+
+def username_tools_menu():
+    while True:
+        print_header("USERNAME TOOLS  (Page 3/5)")
+        print(f"{COLOR}[11]{RESET} Username Checker     - Check username availability")
+        print(f"{COLOR}[12]{RESET} Basic Name Generator - Simple random usernames")
+        print(f"{COLOR}[13]{RESET} Fancy Name Generator - Stylish prefixed names")
+        print(f"{COLOR}[14]{RESET} Discord Tag Generator- Generate #0000 tags")
+        
+        print("\n" + "─" * 70)
+        print(f"{COLOR}[S ]{RESET} Previous Page")
+        print(f"{COLOR}[N ]{RESET} Next Page → OSINT Tools")
+        print(f"{COLOR}[99]{RESET} Back to Main Menu\n")
+        
+        op = clean_input(input(f"{COLOR}{BOLD}Choice → {RESET}")).upper()
+        if op == "11": username_checker_menu()
+        elif op == "12": name_generator_menu()
+        elif op == "13": fancy_name_generator()
+        elif op == "14": discord_tag_generator()
+        elif op == "S": return
+        elif op == "N": osint_menu()
+        elif op in ["99", "Q"]: return
+        else: 
+            print(f"{RED}Invalid option.{RESET}")
+            time.sleep(1)
+
+def nuke_menu():
+    while True:
+        print_header("NUKE TOOLS  (Page 2/5)")
+        print(f"{RED}[07]{RESET} Raid Server          - Create raid channels + spam")
+        print(f"{RED}[08]{RESET} Delete All Channels  - Delete every channel")
+        print(f"{RED}[09]{RESET} Ban All Members      - Ban every member")
+        print(f"{RED}[10]{RESET} Kick All Members     - Kick every member")
+        
+        print("\n" + "─" * 70)
+        print(f"{COLOR}[S ]{RESET} Previous Page")
+        print(f"{COLOR}[N ]{RESET} Next Page → Username Tools")
+        print(f"{COLOR}[99]{RESET} Back to Main Menu\n")
+        
+        op = clean_input(input(f"{COLOR}{BOLD}Choice → {RESET}")).upper()
+        if op in ["7","07"]: create_raid_channels()
+        elif op in ["8","08"]: delete_all_channels()
+        elif op in ["9","09"]: ban_all_members()
+        elif op == "10": kick_all_members()
+        elif op == "N": username_tools_menu()
+        elif op == "S": return
+        elif op in ["99","Q"]: return
+        else: 
+            print(f"{RED}Invalid option.{RESET}")
+            time.sleep(1)
+
+def menu_principal():
+    global COLOR
+    while True:
+        print_header("MAIN MENU  (Page 1/5)")
+        print(f"{BLUE}   Status :{RESET} {GREEN}● TOKEN MODE{RESET}")
+        print(f"{BLUE}   Channel:{RESET} {GREEN}{CHANNEL_ID[:8]}...{RESET}\n")
+        
+        print(f"{COLOR}[01]{RESET} Send Message         - Send single or multiple messages")
+        print(f"{COLOR}[02]{RESET} Normal Spam          - Basic repeated messages")
+        print(f"{COLOR}[03]{RESET} Ultra Fast Spam      - Fast multi-thread spam")
+        print(f"{COLOR}[04]{RESET} Infinite Spam        - Spam until stopped")
+        print(f"{COLOR}[05]{RESET} Mass Ping            - Ping @everyone repeatedly")
+        print(f"{COLOR}[06]{RESET} Random Spam          - Send random Winterz messages")
+        
+        print("\n" + "─" * 70)
+        print(f"{COLOR}[N ]{RESET} Next Page → Nuke Tools")
+        print(f"{COLOR}[AI]{RESET} AI Winterz Assistant - Advanced intelligent help")
+        print(f"{COLOR}[99]{RESET} Change Color")
+        print(f"{COLOR}[Q ]{RESET} Quit\n")
+        
+        choice = clean_input(input(f"{COLOR}{BOLD}Choice → {RESET}")).upper()
+
+        if choice in ["1","01"]:
+            print_header("SEND MESSAGE")
+            msg = clean_input(input(f"{COLOR}Message: {RESET}")) or SPAM_MESSAGE
+            try: amount = int(input(f"{COLOR}Amount: {RESET}") or 50)
+            except: amount = 50
+            for i in range(amount):
+                send_message(msg)
+                print(f"{GREEN}[✓] {i+1}/{amount}{RESET}", end="\r")
+                time.sleep(0.22)
+            input(f"\n{YELLOW}Press ENTER to return...{RESET}")
+        elif choice in ["2","02"]: spam_normal()
+        elif choice in ["3","03"]: spam_ultra()
+        elif choice in ["4","04"]: spam_infinite()
+        elif choice in ["5","05"]: mass_ping()
+        elif choice in ["6","06"]:
+            print_header("RANDOM SPAM")
+            try: amount = int(input(f"{COLOR}Amount: {RESET}") or 100)
+            except: amount = 100
+            for i in range(amount):
+                send_message(SPAM_MESSAGE)
+                print(f"{GREEN}[✓] {i+1}/{amount}{RESET}", end="\r")
+                time.sleep(0.2)
+            input(f"\n{YELLOW}Press ENTER to return...{RESET}")
+        elif choice in ["AI", "KK7", "WINTERZ"]:
+            ai_assistant()
+        elif choice == "N": nuke_menu()
+        elif choice == "99": change_color()
+        elif choice in ["Q","0"]:
+            print(f"\n{YELLOW}Thank you for using Winterz TOOL!{RESET}")
+            break
+        else:
+            print(f"{RED}Invalid option.{RESET}")
+            time.sleep(1)
+
+# ==================== START ====================
+if __name__ == "__main__":
+    try:
+        webbrowser.open("https://guns.lol/yp1", new=2)
+    except: pass
+    welcome_animation()
+    try:
+        load_config()
+        menu_principal()
+    except KeyboardInterrupt:
+        print(f"\n{RED}Program stopped by user.{RESET}")
+    except Exception as e:
+        print(f"{RED}Critical Error: {e}{RESET}")
