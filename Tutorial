@@ -1,0 +1,40 @@
+# 📱 How to Use Discord Tool on Pydroid 3 (Android)
+
+A complete step-by-step tutorial to run your Discord script on **Pydroid 3** on your Android phone. 🚀
+
+## Requirements ✅
+
+- Android Phone
+- **Pydroid 3** app installed
+- Stable Internet connection
+
+---
+
+## Step 1: Install Pydroid 3 📲
+
+1. Open **Google Play Store**
+2. Search for **Pydroid 3**
+3. Install the app (orange icon)
+
+---
+
+## Step 2: Install the `requests` Library 🛠️
+
+1. Open **Pydroid 3**
+2. Tap the **Terminal** button (console icon at the bottom)
+3. Type the following command and press Enter:
+
+```bash
+pip install requests
+
+## Step 3: Configure Your Data
+
+Replace these values in the code:
+
+• YOUR_TOKEN_HERE → Your Discord User Token
+
+(How to get: Open Discord on PC → Press F12 → Application → Local Storage → Find token)
+
+CHANNEL_ID_HERE → ID of the target channel (Enable Developer Mode → Right-click channel → Copy ID)
+
+SERVER_ID_HERE → ID of the server (optional
