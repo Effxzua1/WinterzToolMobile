@@ -1,125 +1,76 @@
-Winterz TOOL v2.7 Professional
-Advanced Discord Multitool | Python Terminal Suite
+# ❄️ Winterz TOOL v2.7 Professional
 
-==============================================================
-OVERVIEW
-Winterz TOOL v2.7 is a powerful, feature-rich Python-based Discord automation suite designed for raiding, server cloning, mass spam, and OSINT utilities. Built with a clean and dynamic TUI (Text User Interface), it offers smooth navigation across 5 organized menu pages.
+**Advanced Discord Multitool | Python Terminal Suite**
 
-Ultra-fast multi-threaded spam engine
-Advanced Full Server Cloner
-Complete Nuke & Raid toolkit
-Winterz AI Assistant
-7 Real-time customizable colors
+A powerful, modular Python-based Discord automation tool featuring server cloning, mass spam, nuke capabilities, and OSINT utilities. Built with a clean and dynamic Text User Interface (TUI).
 
-==============================================================
-KEY FEATURES
+---
 
-Spam Arsenal
-- Normal Spam
-- Ultra Fast Spam (Multi-threaded)
-- Infinite Spam (until stopped)
-- Mass Ping (@everyone)
-- Random Winterz Spam
+## ❄️ Overview
 
-Nuke & Raid Tools
-- Create Raid Channels + Auto Spam
-- Delete All Channels
-- Ban All Members
-- Kick All Members
+Winterz TOOL v2.7 is a feature-rich terminal application designed for advanced Discord management and automation. It combines powerful raiding tools, precise server cloning, high-speed spam capabilities, and useful OSINT utilities into one intuitive interface.
 
-Server Cloner
-- Advanced Full Clone (Name, Icon, Roles with permissions, Categories, Text & Voice Channels, Emojis)
-- Clone Emojis Only
+**Key Highlights:**
+- ⚡ Ultra-fast multi-threaded spam engine
+- 🏗️ Advanced full server cloner with intelligent mapping
+- 🔥 Complete nuke and raid toolkit
+- 🤖 Integrated Winterz AI Assistant
+- 🎨 Real-time color customization (7 themes)
+- 🔒 Automatic token validation and rate limit handling
 
-Username Tools
-- Username Checker
-- Basic Name Generator
-- Fancy Name Generator
-- Discord Tag Generator
+---
 
-OSINT & Utilities
-- User Lookup
-- Server Information
-- Avatar Downloader
-- Token Information
-- Webhook Checker
-- Snowflake Decoder
-- Basic IP Lookup
+## ✨ Features
 
-Extras
-- Live Color Changer (7 options)
-- Token Auto-Verification
-- Welcome Animation
-- Rate Limit Handling
-- Clean Input System
+### Spam Tools
+- 📨 Single or bulk message sending
+- 📤 Normal Spam
+- ⚡ Ultra Fast Spam (multi-threaded)
+- ♾️ Infinite Spam (manual stop)
+- 📢 Mass Ping (@everyone)
+- 🎲 Random Spam
 
-==============================================================
-AVAILABLE THEMES
-Red  Green  Yellow  Blue  Cyan  Magenta  White
+### Nuke & Raid Tools 🔥
+- 🛠️ Create multiple raid channels with automatic spam
+- 🗑️ Delete all channels
+- 🔨 Ban all members
+- 👢 Kick all members
 
-Made with heart by Effxz Creations
-Powered by Python - Built for Discord
+### Server Cloner 🏗️
+- **Advanced Full Clone**: Server name, icon, roles (with permissions), categories, text & voice channels, and emojis
+- **Emojis Only** cloning option
 
-Educational & Testing Purposes Only
+### Username Tools
+- 🔍 Username availability checker
+- 🎲 Basic random name generator
+- ✨ Fancy name generator
+- #️⃣ Discord tag generator
 
+### OSINT & Utilities 🔎
+- 👤 User lookup by ID
+- 🖥️ Server information
+- 🖼️ Avatar downloader
+- 🔑 Token information viewer
+- 🔗 Webhook validator
+- ❄️ Snowflake ID decoder
+- 🌐 Basic IP lookup
 
-Winterz TOOL v2.7 - Program Structure
+### Additional Features
+- 🌈 Live theme/color changer
+- 🎬 Welcome animation
+- 🧹 Robust input sanitization
+- 📑 Modular menu system (5 pages)
 
-==============================================================
-MENU ORGANIZATION (5 Pages)
+---
 
-Page 1/5 - MAIN MENU
-- Send Single / Multiple Messages
-- Normal Spam
-- Ultra Fast Spam
-- Infinite Spam
-- Mass Ping
-- Random Spam
-- Winterz AI Assistant
-- Color Changer
-- Quit
+## 🎨 Available Themes
+🔴 Red • 🟢 Green • 🟡 Yellow • 🔵 Blue • 🔷 Cyan • 🌸 Magenta • ⚪ White
 
-Page 2/5 - NUKE TOOLS
-- Raid Server (Channels + Spam)
-- Delete All Channels
-- Ban All Members
-- Kick All Members
+---
 
-Page 3/5 - USERNAME TOOLS
-- Username Checker
-- Basic Name Generator
-- Fancy Name Generator
-- Discord Tag Generator
+## Installation
 
-Page 4/5 - OSINT & CYBERSECURITY
-- User Lookup
-- Server Information
-- Download Avatar
-- Token Information
-- Webhook Checker
-- Snowflake Decoder
-- Basic IP Lookup
-
-Page 5/5 - SERVER CLONER TOOLS
-- Advanced Server Cloner (Full Clone)
-- Clone Emojis Only
-
-==============================================================
-TECHNICAL STRUCTURE
-
-- Global dynamic color system
-- Robust clean_input() function
-- Automatic token validation
-- Multi-threading support for high-speed spam
-- Smart rate limit handler
-- Full server cloning with ID mapping (roles & channels)
-- Modular menu system with [N] Next / [S] Previous navigation
-- Exception handling & KeyboardInterrupt support
-- Animated welcome screen
-
-Fully modular & expandable
-Python - Discord API - High Performance
-
-==============================================================
-
-
+1. Download `WinterzTool.py`
+2. Install dependencies:
+   ```bash
+   pip install requests
